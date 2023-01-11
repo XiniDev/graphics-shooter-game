@@ -1,14 +1,18 @@
 import * as THREE from './three/three.modules.js';
 import { FirstPersonControls } from './controls.js';
+import { Crosshair } from './crosshair.js';
+import { Floor } from './floor.js';
 
 let camera, scene, renderer, fps
 
 let prevTime = performance.now();
 
-const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+// starting cube
+// const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+// const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 
-const cube = new THREE.Mesh( geometry, material );
+// const cube = new THREE.Mesh( geometry, material );
+
 
 init();
 animate();
@@ -16,19 +20,28 @@ animate();
 function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color( { color: 0xffffff } );
+    scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
+    
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
+    
 
-    scene.add( cube );
-
-    camera.position.z = 5;
+    // scene.add( cube );
 
     fps = new FirstPersonControls(camera);
 
+    camera.position.y = fps.height;
+
+    // test fall
+    // camera.position.y = 100;
+
     scene.add( fps.controls.getObject() );
+
+    let floor = new Floor(500, 500, 5, 5);
+    scene.add( floor.mesh );
 
     const blocker = document.getElementById( 'blocker' );
     const instructions = document.getElementById( 'instructions' );
@@ -52,6 +65,10 @@ function init() {
         instructions.style.display = '';
 
     } );
+
+    // add crosshair at the end so its in the front in the scene
+    let crosshair = new Crosshair();
+    camera.add(crosshair.group);
 }
 
 function animate() {
@@ -60,8 +77,8 @@ function animate() {
     const time = performance.now();
     const delta = (time - prevTime) / 1000;
 
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+    // cube.rotation.x += 0.01;
+    // cube.rotation.y += 0.01;
 
     fps.update(delta)
 
