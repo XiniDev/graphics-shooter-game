@@ -73,7 +73,7 @@ function init() {
 
     // weapon controls
     let wc = new WeaponControls();
-    wc.useGun("Edge_14", camera, loader);
+    wc.useBlade("Blade_Of_Ionia", 0, camera, loader);
 
     // add crosshair at the end so its in the front in the scene
     let crosshair = new Crosshair();
