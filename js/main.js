@@ -1,9 +1,11 @@
 import * as THREE from './three/three.modules.js';
+import { GLTFLoader } from './three/addons/GLTFLoader.js';
 import { FirstPersonControls } from './controls.js';
 import { Crosshair } from './crosshair.js';
 import { Floor } from './floor.js';
+import { WeaponControls } from './weapon-controls.js';
 
-let camera, scene, renderer, fps
+let camera, scene, renderer, fps, loader
 
 let prevTime = performance.now();
 
@@ -18,6 +20,7 @@ init();
 animate();
 
 function init() {
+    // init variables
     scene = new THREE.Scene();
     scene.background = new THREE.Color( { color: 0xffffff } );
     scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
@@ -27,10 +30,12 @@ function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
-    
+
+    loader = new GLTFLoader();
 
     // scene.add( cube );
 
+    // first person controller
     fps = new FirstPersonControls(camera);
 
     camera.position.y = fps.height;
@@ -66,9 +71,13 @@ function init() {
 
     } );
 
+    // weapon controls
+    let wc = new WeaponControls();
+    wc.useGun("Edge_14", camera, loader);
+
     // add crosshair at the end so its in the front in the scene
     let crosshair = new Crosshair();
-    camera.add(crosshair.group);
+    crosshair.init(camera)
 }
 
 function animate() {

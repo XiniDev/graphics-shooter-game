@@ -14,7 +14,10 @@ class Crosshair {
         this.vertical.position.set(0, 0, -5);
 
         this.group.add(this.horizontal);
-        this.group.add(this.vertical)
+        this.group.add(this.vertical);
+    }
+    init(camera) {
+        camera.add(this.group);
     }
 }
 
