@@ -31,24 +31,29 @@ class FirstPersonControls {
     onKeyDown(event) {
         switch (event.code) {
             // movement
-            case 'KeyW':
+            case "KeyW":
+                // W
                 this.moveForward = true;
                 break;
-            case 'KeyS':
+            case "KeyS":
+                // S
                 this.moveBackward = true;
                 break;
-            case 'KeyD':
+            case "KeyD":
+                // D
                 this.moveRight = true;
                 break;
-            case 'KeyA':
+            case "KeyA":
+                // A
                 this.moveLeft = true;
                 break;
-            // sprint
-            case 'ShiftLeft':
+            case "ShiftLeft":
+                // Left Shift
                 if (this.canSprint) this.isSprinting = true;
                 break;
             // jump
-            case 'Space':
+            case "Space":
+                // Space
                 if (this.canJump) this.velocity.y += ACCELERATION.y;
                 this.canJump = false;
                 break;
@@ -58,20 +63,25 @@ class FirstPersonControls {
     onKeyUp(event) {
         switch (event.code) {
             // movement
-            case 'KeyW':
+            case "KeyW":
+                // W
                 this.moveForward = false;
                 break;
-            case 'KeyS':
+            case "KeyS":
+                // S
                 this.moveBackward = false;
                 break;
-            case 'KeyD':
+            case "KeyD":
+                // D
                 this.moveRight = false;
                 break;
-            case 'KeyA':
+            case "KeyA":
+                // A
                 this.moveLeft = false;
                 break;
             // sprint  
-            case 'ShiftLeft':
+            case "ShiftLeft":
+                // Left Shift
                 this.isSprinting = false;
                 break;
         }

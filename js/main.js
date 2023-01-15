@@ -5,7 +5,7 @@ import { Crosshair } from './crosshair.js';
 import { Floor } from './floor.js';
 import { WeaponControls } from './weapon-controls.js';
 
-let camera, scene, renderer, fps, loader
+let camera, scene, renderer, fps, loader, wc
 
 let prevTime = performance.now();
 
@@ -72,8 +72,7 @@ function init() {
     } );
 
     // weapon controls
-    let wc = new WeaponControls();
-    wc.useBlade("Blade_Of_Ionia", 0, camera, loader);
+    wc = new WeaponControls(camera, loader);
 
     // add crosshair at the end so its in the front in the scene
     let crosshair = new Crosshair();
@@ -90,6 +89,7 @@ function animate() {
     // cube.rotation.y += 0.01;
 
     fps.update(delta)
+    wc.update(delta, camera)
 
     prevTime = time
 
