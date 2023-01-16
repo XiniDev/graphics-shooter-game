@@ -2,7 +2,7 @@ import * as THREE from './three/three.modules.js';
 
 class Crosshair {
     constructor() {
-        const geometry = new THREE.PlaneGeometry(0.1, 0.01);
+        const geometry = new THREE.PlaneGeometry(0.2, 0.02);
         const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x000000) });
 
         this.group = new THREE.Group();

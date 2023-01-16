@@ -43,7 +43,7 @@ class Floor {
 
         for ( let i = 0, l = position.count; i < l; i ++ ) {
 
-            color.setHSL( Math.random() * 0.1 + 0.3, 0.5, Math.random() * 0.1 + 0.8 );
+            color.setHSL( Math.random() * 0.1 + 0.8, 0.5, Math.random() * 0.1 + 0.3 );
             colorsFloor.push( color.r, color.g, color.b );
 
         }

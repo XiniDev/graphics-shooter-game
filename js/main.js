@@ -72,11 +72,11 @@ function init() {
     } );
 
     // weapon controls
-    wc = new WeaponControls(camera, loader);
+    wc = new WeaponControls(camera, loader, scene);
 
     // add crosshair at the end so its in the front in the scene
     let crosshair = new Crosshair();
-    crosshair.init(camera)
+    crosshair.init(camera);
 }
 
 function animate() {
