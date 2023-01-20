@@ -4,7 +4,7 @@ import { FirstPersonControls } from './controls.js';
 import { Floor } from './floor.js';
 import { WeaponControls } from './weapon-controls.js';
 
-let camera, scene, sun, renderer, fps, loader, wc, floor
+let camera, scene, renderer, fps, loader, wc, floor
 
 let prevTime = performance.now();
 
@@ -26,9 +26,10 @@ function init() {
     
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-    sun = new THREE.HemisphereLight(0x0000ff, 0x00ff00, 0.6); 
-    // sun.position.set(0, 50, 0);
+    let sun = new THREE.HemisphereLight(0x0000ff, 0x00ff00, 0.6);
+    let ambient = new THREE.AmbientLight(0x222222);
     scene.add(sun);
+    scene.add(ambient);
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -41,7 +42,7 @@ function init() {
     // first person controller
     fps = new FirstPersonControls(camera);
 
-    camera.position.y = fps.height;
+    camera.position.y = fps.height + 50;
 
     // test fall
     // camera.position.y = 100;
@@ -50,6 +51,8 @@ function init() {
 
     floor = new Floor(2500, 2500, 5, 5);
     scene.add( floor.mesh );
+
+    fps.setFloorValues(floor);
 
     const blocker = document.getElementById( 'blocker' );
     const instructions = document.getElementById( 'instructions' );
@@ -87,7 +90,7 @@ function animate() {
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;
 
-    fps.update(delta, floor, wc.isAiming, scene);
+    fps.update(delta, wc.isAiming);
     wc.update(delta, camera, fps.velocity);
 
     prevTime = time;

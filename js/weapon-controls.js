@@ -207,6 +207,10 @@ class WeaponControls {
             let bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
             bullet.scale.set(bullet.scale.x * 0.1, bullet.scale.y * 0.1, bullet.scale.z * 0.1);
 
+            // light bullets
+            // const shine = new THREE.PointLight(0x222222, 2, 30);
+            // bullet.add(shine);
+
             // set bullet position and rotation
             bullet.position.copy(position);
             bullet.position.y += 0.7;

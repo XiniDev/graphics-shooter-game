@@ -21,8 +21,8 @@ class Floor {
         this.vertices = this.geometry.attributes.position.array;
         // console.log(this.vertices);
         let perlin = new Perlin();
-        let peak = 60;
-        let smoothing = 300;
+        let peak = 50;
+        let smoothing = 400;
         for (let i = 0; i < this.vertices.length; i += 3) {
             const x = this.vertices[i];
             const y = this.vertices[i + 1];
@@ -36,6 +36,9 @@ class Floor {
 
         this.geometry.rotateX(-Math.PI / 2);
         this.geometry.translate(0, 0, 0);
+
+        // gets the indices of the vertices
+        this.indices = this.geometry.index.array;
 
         // const vertex = new THREE.Vector3();
         // const color = new THREE.Color();

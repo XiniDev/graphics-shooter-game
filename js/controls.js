@@ -26,19 +26,22 @@ class FirstPersonControls {
 
         this.floorDetector = new THREE.Raycaster(new THREE.Vector3(), v3Direction('down'), 0, 10);
 
-        const min = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
-        min.sub(new THREE.Vector3(5, 20, 5));
+        this.floorVerts = [];
+        this.floorTrigs = [];
+
+        // const min = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
+        // min.sub(new THREE.Vector3(5, 20, 5));
     
-        const max = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
-        max.add(new THREE.Vector3(5, 20, 5));
+        // const max = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
+        // max.add(new THREE.Vector3(5, 20, 5));
     
-        this.aabb = new THREE.Box3(min, max);
+        // this.aabb = new THREE.Box3(min, max);
         // this.aabbh = new THREE.Box3Helper(aabb);
 
         camera.add(this.aabb);
 
         this.debug = {
-            "flight" : true,
+            "flight" : false,
         }
 
         document.addEventListener('keydown', (event) => this.onKeyDown(event));
@@ -104,23 +107,34 @@ class FirstPersonControls {
         }
     }
 
-    update(delta, floor, isAiming, scene) {
+    setFloorValues(floor) {
+        this.floorVerts = floor.vertices;
+        this.floorIndices = floor.indices;
+        for (let i = 0; i < this.floorIndices.length; i+=3) {
+            // get indices from each triangle in the plane geometry
+            const i1 = this.floorIndices[i];
+            const i2 = this.floorIndices[i+1];
+            const i3 = this.floorIndices[i+2];
+            
+            // get vertices from their indices
+            const a = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, i1);
+            const b = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, i2);
+            const c = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, i3);
+
+            let triangle = new THREE.Triangle(a, b, c);
+            this.floorTrigs.push(triangle);
+        }
+    }
+
+    update(delta, isAiming, scene) {
         this.sprintCheck(isAiming);
         this.applyFriction(delta);
         this.applyForce(delta, isAiming);
         this.movement(delta);
         if (this.debug["flight"] == false) {
             this.fall(delta);
-            this.detectFloor(delta, floor);
+            this.detectFloor(delta);
         }
-        // check if intersect floor
-        this.floorDetector.ray.origin.copy(this.controls.getObject().position);
-        this.floorDetector.ray.origin.y -= 10;
-        let a = new THREE.ArrowHelper(this.floorDetector.ray.direction, this.floorDetector.ray.origin, 300, 0xff0000)
-        scene.add(a)
-        // let intersection = new THREE.Vector3();
-        // this.floorDetector.ray.intersectPlane(floor.mesh, intersection);
-        console.log(this.floorDetector.intersectObjects(floor.mesh, true)); // work in progress
     }
 
     sprintCheck(isAiming) {
@@ -186,11 +200,26 @@ class FirstPersonControls {
         this.controls.getObject().position.y += this.velocity.y * delta;
     }
 
-    detectFloor(delta, floor) {
+    detectFloor(delta) {
+        // check if intersect floor
+        this.floorDetector.ray.origin.copy(this.controls.getObject().position);
+        this.floorDetector.ray.origin.y -= 10;
 
-        if (this.controls.getObject().position.y < this.height) {
+        let intersection = new THREE.Vector3();
+
+        // check for intersections using triangles stored from before
+        for (let i = 0; i < this.floorTrigs.length; i++) {
+            const a = this.floorTrigs[i].a;
+            const b = this.floorTrigs[i].b;
+            const c = this.floorTrigs[i].c;
+            this.floorDetector.ray.intersectTriangle(a, b, c, false, intersection);
+        }
+
+        console.log(intersection);
+
+        if (this.controls.getObject().position.y < intersection.y + this.height) {
             this.velocity.y = 0;
-            this.controls.getObject().position.y = this.height;
+            this.controls.getObject().position.y = intersection.y + this.height;
             this.canJump = true;
         }
     }
