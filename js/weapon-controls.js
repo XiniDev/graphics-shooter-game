@@ -2,12 +2,10 @@ import * as THREE from './three/three.modules.js';
 import { Crosshair } from './crosshair.js';
 import { v3Direction } from './utils.js';
 
+const TOTAL_HELD_WEAPONS = 1;
+
 const GUN_MODELS = {
     "Edge_14" : new URL('../assets/models/guns/Edge14.glb', import.meta.url),
-};
-
-const BLADE_MODELS = {
-    "Blade_Of_Ionia" : new URL('../assets/models/blades/blade_of_ionia_white.glb', import.meta.url),
 };
 
 const GUN_PROPERTIES = {
@@ -22,15 +20,11 @@ class WeaponControls {
     constructor(camera, loader, scene) {
         // model stuff
         this.heldIndex = 0;
-        this.heldWeapons = ["Edge_14", "Blade_Of_Ionia"];
+        this.heldWeapons = ["Edge_14"];
         this.weaponModels = {};
 
         for (const [key, value] of Object.entries(GUN_MODELS)) {
             this.loadGun(key, camera, loader);
-        }
-
-        for (const [key, value] of Object.entries(BLADE_MODELS)) {
-            this.loadBlade(key, camera, loader);
         }
 
         // lighting for weapon
@@ -50,7 +44,6 @@ class WeaponControls {
         this.accuracyMod = 0;
 
         document.addEventListener('keydown', (event) => this.onKeyDown(event));
-        // document.addEventListener('keyup', (event) => this.onKeyUp(event));
 
         document.addEventListener('click', (event) => this.onClick(event, camera, scene));
         
@@ -100,7 +93,7 @@ class WeaponControls {
     }
 
     holdWeapon(camera) {
-        if (Object.keys(this.weaponModels).length == 2) {
+        if (Object.keys(this.weaponModels).length == TOTAL_HELD_WEAPONS) {
             camera.remove(this.weaponModels[this.heldWeapons[(this.heldIndex - 1) * - 1]]);
             camera.add(this.weaponModels[this.heldWeapons[this.heldIndex]]);
         }
@@ -144,24 +137,7 @@ class WeaponControls {
             mesh.position.set(mesh.position.x + 3, mesh.position.y - 2.5, mesh.position.z - 5);
             this.weaponModels[gun] = mesh;
         };
-        // gunLoader.bind(this);
         loader.load(GUN_MODELS[gun].href, gunLoader);
-    }
-
-    loadBlade(blade, camera, loader) {
-        // load blade asset
-        let bladeLoader = (gltf) => {
-            const model = gltf.scene;
-            const mesh = model.children.find((child) => child.name === blade);
-            mesh.scale.set(mesh.scale.x * 20, mesh.scale.y * 20, mesh.scale.z * 20);
-            mesh.position.set(mesh.position.x + 5, mesh.position.y - 1, mesh.position.z - 5);
-            mesh.rotateX(Math.PI / 4);
-            mesh.rotateY(-Math.PI / 4);
-            mesh.rotateZ(Math.PI / 4);
-            this.weaponModels[blade] = mesh;
-        };
-        // bladeLoader.bind(this);
-        loader.load(BLADE_MODELS[blade].href, bladeLoader)
     }
 
     aim(mesh, camera) {
@@ -184,9 +160,6 @@ class WeaponControls {
             switch (mesh.name) {
                 case "Edge_14":
                     this.shootEdge14(mesh, camera, scene)
-                    break;
-                case "Blade_Of_Ionia":
-                    console.log("boi");
                     break;
             }
         }

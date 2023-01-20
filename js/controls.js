@@ -215,7 +215,7 @@ class FirstPersonControls {
             this.floorDetector.ray.intersectTriangle(a, b, c, false, intersection);
         }
 
-        console.log(intersection);
+        // console.log(intersection);
 
         if (this.controls.getObject().position.y < intersection.y + this.height) {
             this.velocity.y = 0;
