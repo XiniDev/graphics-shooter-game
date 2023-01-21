@@ -6,6 +6,7 @@ const GRAVITY = 9.8
 const DECCELERATION = new THREE.Vector3(-10, -16, -10)
 const ACCELERATION = new THREE.Vector3(500, 60, 500)
 const SPRINTSPEED = 2
+const INTERACT_DISTANCE = 20
 
 class FirstPersonControls {
     constructor(camera) {
@@ -25,20 +26,21 @@ class FirstPersonControls {
         this.controls = new PointerLockControls(camera, document.body);
 
         this.floorDetector = new THREE.Raycaster(new THREE.Vector3(), v3Direction('down'), 0, 10);
+        this.interactDetector = new THREE.Raycaster(new THREE.Vector3(), v3Direction('back'), 0, 20);
 
         this.floorVerts = [];
         this.floorTrigs = [];
 
-        // const min = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
-        // min.sub(new THREE.Vector3(5, 20, 5));
-    
-        // const max = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
-        // max.add(new THREE.Vector3(5, 20, 5));
-    
-        // this.aabb = new THREE.Box3(min, max);
-        // this.aabbh = new THREE.Box3Helper(aabb);
+        // player capsule
+        const capGeo = new THREE.CapsuleGeometry(5, 20, 5, 10);
+        const capMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        this.capsule = new THREE.Mesh(capGeo, capMat);
+        camera.add( this.capsule );
+        this.capsule.position.z -= 3;
 
-        camera.add(this.aabb);
+        // player bounding box
+        this.collisionBox = new THREE.Box3();
+        this.capsule.geometry.computeBoundingBox();
 
         this.debug = {
             "flight" : false,
@@ -77,6 +79,10 @@ class FirstPersonControls {
                 if (this.canJump) this.velocity.y += ACCELERATION.y;
                 this.canJump = false;
                 break;
+            case "KeyE":
+                // E
+                this.interact();
+                break;
         }
     }
 
@@ -110,31 +116,33 @@ class FirstPersonControls {
     setFloorValues(floor) {
         this.floorVerts = floor.vertices;
         this.floorIndices = floor.indices;
-        for (let i = 0; i < this.floorIndices.length; i+=3) {
-            // get indices from each triangle in the plane geometry
-            const i1 = this.floorIndices[i];
-            const i2 = this.floorIndices[i+1];
-            const i3 = this.floorIndices[i+2];
-            
-            // get vertices from their indices
-            const a = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, i1);
-            const b = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, i2);
-            const c = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, i3);
-
-            let triangle = new THREE.Triangle(a, b, c);
-            this.floorTrigs.push(triangle);
-        }
+        this.floorTrigs = floor.triangles;
     }
 
-    update(delta, isAiming, scene) {
+    // addCrateManager(crateManager) {
+    //     this.crateManager = crateManager;
+    // }
+
+    update(delta, isAiming, currentCrates) {
+        this.applyBoundingBox();
+        this.currentInteractables(currentCrates);
         this.sprintCheck(isAiming);
         this.applyFriction(delta);
         this.applyForce(delta, isAiming);
         this.movement(delta);
+        this.rayUpdate();
         if (this.debug["flight"] == false) {
             this.fall(delta);
-            this.detectFloor(delta);
+            this.detectFloor();
         }
+    }
+
+    applyBoundingBox() {
+        this.collisionBox.copy(this.capsule.geometry.boundingBox).applyMatrix4(this.capsule.matrixWorld);
+    }
+
+    currentInteractables(currentCrates) {
+        this.currentCrates = currentCrates;
     }
 
     sprintCheck(isAiming) {
@@ -192,6 +200,17 @@ class FirstPersonControls {
         this.controls.getObject().position.add(forward).add(right);
     }
 
+    rayUpdate() {
+        const controlsObject = this.controls.getObject();
+        // ray for floor
+        this.floorDetector.ray.origin.copy(controlsObject.position);
+        this.floorDetector.ray.origin.y -= 10;
+        
+        // ray for interact
+        this.interactDetector.ray.origin.copy(controlsObject.position);
+        this.interactDetector.ray.direction.copy(this.getDirection(v3Direction('back')));
+    }
+
     getDirection(vector) {
         return vector.applyQuaternion(this.controls.getObject().quaternion);
     }
@@ -200,11 +219,7 @@ class FirstPersonControls {
         this.controls.getObject().position.y += this.velocity.y * delta;
     }
 
-    detectFloor(delta) {
-        // check if intersect floor
-        this.floorDetector.ray.origin.copy(this.controls.getObject().position);
-        this.floorDetector.ray.origin.y -= 10;
-
+    detectFloor() {
         let intersection = new THREE.Vector3();
 
         // check for intersections using triangles stored from before
@@ -221,6 +236,18 @@ class FirstPersonControls {
             this.velocity.y = 0;
             this.controls.getObject().position.y = intersection.y + this.height;
             this.canJump = true;
+        }
+    }
+
+    interact() {
+        let intersection = new THREE.Vector3();
+        for (let i = 0; i < this.currentCrates.length; i++) {
+            this.interactDetector.ray.intersectBox(this.currentCrates[i]["box"], intersection);
+            if (this.interactDetector.ray.origin.distanceTo(intersection) <= INTERACT_DISTANCE) {
+                this.currentCrates[i]["looted"] = true;
+                console.log(intersection);
+                break;
+            }
         }
     }
 }

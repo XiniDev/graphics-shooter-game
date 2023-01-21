@@ -24,7 +24,7 @@ class WeaponControls {
         this.weaponModels = {};
 
         for (const [key, value] of Object.entries(GUN_MODELS)) {
-            this.loadGun(key, camera, loader);
+            this.loadGun(key, loader);
         }
 
         // lighting for weapon
@@ -34,6 +34,10 @@ class WeaponControls {
 
         // crosshair
         this.crosshair = new Crosshair();
+
+        // backup for reset
+        this.backupGunPosition = new THREE.Vector3();
+        this.backupGunRotation = new THREE.Euler();
 
         // other variables
         this.bullets = [];
@@ -101,12 +105,17 @@ class WeaponControls {
 
     shootAnimation(delta) {
         if (this.isShooting) {
+            let gun = this.weaponModels[this.heldWeapons[this.heldIndex]]
+            this.backupGunPosition.copy(gun.position);
+            this.backupGunRotation.copy(gun.rotation);
             if (this.shootFrames < this.maxShootFrames) {
                 this.shootFrames += 1;
-                this.shootAnimationOnCase(delta, this.weaponModels[this.heldWeapons[this.heldIndex]]);
+                this.shootAnimationOnCase(delta, gun);
             } else {
                 this.shootFrames = 0;
                 this.isShooting = false;
+                gun.position.copy(this.backupGunPosition);
+                gun.rotation.copy(this.backupGunRotation);
             }
         }
     }
@@ -128,7 +137,7 @@ class WeaponControls {
         }
     }
 
-    loadGun(gun, camera, loader) {
+    loadGun(gun, loader) {
         // load gun asset
         let gunLoader = (gltf) => {
             const model = gltf.scene;
@@ -156,7 +165,7 @@ class WeaponControls {
     }
 
     attack(mesh, camera, scene) {
-        if (!(mesh === "undefined")) {
+        if (mesh !== "undefined") {
             switch (mesh.name) {
                 case "Edge_14":
                     this.shootEdge14(mesh, camera, scene)

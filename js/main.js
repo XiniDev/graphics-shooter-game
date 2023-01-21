@@ -3,10 +3,15 @@ import { GLTFLoader } from './three/addons/GLTFLoader.js';
 import { FirstPersonControls } from './controls.js';
 import { Floor } from './floor.js';
 import { WeaponControls } from './weapon-controls.js';
+import { CrateManager } from './crate-manager.js';
 
-let camera, scene, renderer, fps, loader, wc, floor
+let camera, scene, renderer, loader;
+let floor;
+let fps, wc, cm;
 
 let prevTime = performance.now();
+
+const WORLD_SIZE = 2500;
 
 // starting cube
 // const geometry = new THREE.BoxGeometry( 1, 1, 1 );
@@ -27,7 +32,7 @@ function init() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
     let sun = new THREE.HemisphereLight(0x0000ff, 0x00ff00, 0.6);
-    let ambient = new THREE.AmbientLight(0x222222);
+    let ambient = new THREE.AmbientLight(0x111111);
     scene.add(sun);
     scene.add(ambient);
 
@@ -49,7 +54,7 @@ function init() {
 
     scene.add( fps.controls.getObject() );
 
-    floor = new Floor(2500, 2500, 5, 5);
+    floor = new Floor(WORLD_SIZE, WORLD_SIZE, 5, 5);
     scene.add( floor.mesh );
 
     fps.setFloorValues(floor);
@@ -77,6 +82,10 @@ function init() {
 
     } );
 
+    cm = new CrateManager(loader);
+
+    // fps.addCrateManager(cm);
+
     // weapon controls
     wc = new WeaponControls(camera, loader, scene);
 }
@@ -90,8 +99,12 @@ function animate() {
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;
 
-    fps.update(delta, wc.isAiming);
+    fps.update(delta, wc.isAiming, cm.currentCrates);
     wc.update(delta, camera, fps.velocity);
+    cm.update(delta, floor, scene);
+
+    // var arrow = new THREE.ArrowHelper( fps.interactDetector.ray.direction, fps.interactDetector.ray.origin, 8, 0xff0000 );
+    // scene.add( arrow );
 
     prevTime = time;
 

@@ -40,6 +40,28 @@ class Floor {
         // gets the indices of the vertices
         this.indices = this.geometry.index.array;
 
+        // get min and max indices
+        this.minIndex = Math.min(this.indices);
+        this.maxIndex = Math.max(this.indices);
+
+        // gets the triangles of the indices
+        this.triangles = [];
+
+        for (let i = 0; i < this.indices.length; i+=3) {
+            // get indices from each triangle in the plane geometry
+            const i1 = this.indices[i];
+            const i2 = this.indices[i+1];
+            const i3 = this.indices[i+2];
+            
+            // get vertices from their indices
+            const a = new THREE.Vector3().fromBufferAttribute(this.geometry.attributes.position, i1);
+            const b = new THREE.Vector3().fromBufferAttribute(this.geometry.attributes.position, i2);
+            const c = new THREE.Vector3().fromBufferAttribute(this.geometry.attributes.position, i3);
+
+            let triangle = new THREE.Triangle(a, b, c);
+            this.triangles.push(triangle);
+        }
+
         // const vertex = new THREE.Vector3();
         // const color = new THREE.Color();
 
