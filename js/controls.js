@@ -1,6 +1,6 @@
 import * as THREE from './three/three.modules.js';
 import { PointerLockControls } from './three/addons/PointerLockControls.js';
-import { v3Direction } from './utils.js';
+import { DEBUG, v3Direction, NORMAL_LOOT, LOOT_DESCRIPTIONS } from './utils.js';
 
 const GRAVITY = 9.8
 const DECCELERATION = new THREE.Vector3(-10, -16, -10)
@@ -42,12 +42,21 @@ class FirstPersonControls {
         this.collisionBox = new THREE.Box3();
         this.capsule.geometry.computeBoundingBox();
 
-        this.debug = {
-            "flight" : false,
-        }
+        // player items
+        this.stackingItems = {}
+        this.initItems();
+
+        // additional stuff
+        this.additionalSpeed = 0;
 
         document.addEventListener('keydown', (event) => this.onKeyDown(event));
         document.addEventListener('keyup', (event) => this.onKeyUp(event));
+    }
+
+    initItems() {
+        for (let i = 0; i < NORMAL_LOOT.length; i++) {
+            this.stackingItems[NORMAL_LOOT[i]] = 0;
+        }
     }
 
     onKeyDown(event) {
@@ -119,11 +128,8 @@ class FirstPersonControls {
         this.floorTrigs = floor.triangles;
     }
 
-    // addCrateManager(crateManager) {
-    //     this.crateManager = crateManager;
-    // }
-
     update(delta, isAiming, currentCrates) {
+        this.applyItems();
         this.applyBoundingBox();
         this.currentInteractables(currentCrates);
         this.sprintCheck(isAiming);
@@ -131,10 +137,19 @@ class FirstPersonControls {
         this.applyForce(delta, isAiming);
         this.movement(delta);
         this.rayUpdate();
-        if (this.debug["flight"] == false) {
+        if (DEBUG["flight"] == false) {
             this.fall(delta);
             this.detectFloor();
         }
+    }
+
+    applyItems() {
+        // Traveler's Boots + speed
+        this.additionalSpeed = this.stackingItems["Traveler's Boots"] * 20;
+
+        // Euan's Heart + max hp
+
+        // Giant's Plating + armor
     }
 
     applyBoundingBox() {
@@ -161,7 +176,7 @@ class FirstPersonControls {
         decceleration.z = this.velocity.z * DECCELERATION.z;
 
         // fall down speed
-        if (this.debug["flight"] == false) decceleration.y = DECCELERATION.y * GRAVITY;
+        if (DEBUG["flight"] == false) decceleration.y = DECCELERATION.y * GRAVITY;
 
         decceleration = decceleration.multiplyScalar(delta);
 
@@ -171,8 +186,8 @@ class FirstPersonControls {
     applyForce(delta, isAiming) {
         let acceleration = new THREE.Vector3(0, 0, 0);
         // acceleration depends on the direction of movement chosen by the player, but cannot simultaneously happen on two polar opposite directions
-        acceleration.x = (Number(this.moveRight) - Number(this.moveLeft)) * ACCELERATION.x;
-        acceleration.z = (Number(this.moveForward) - Number(this.moveBackward)) * ACCELERATION.z;
+        acceleration.x = (Number(this.moveRight) - Number(this.moveLeft)) * (ACCELERATION.x + this.additionalSpeed);
+        acceleration.z = (Number(this.moveForward) - Number(this.moveBackward)) * (ACCELERATION.z + this.additionalSpeed);
 
         // sprinting cannot happen when player is moving backwards, or purely strafing, it can only happen when moving forwards
         if (this.isSprinting && this.moveForward) acceleration.z *= SPRINTSPEED;
@@ -188,12 +203,12 @@ class FirstPersonControls {
     movement(delta) {
         // calculation of foward direction of movement based on the rotation of the camera
         let forward = this.getDirection(v3Direction('back'));
-        if (this.debug["flight"] == false) forward.y = 0;
+        if (DEBUG["flight"] == false) forward.y = 0;
         forward.normalize();
         forward.multiplyScalar(this.velocity.z * delta);
         
         let right = this.getDirection(v3Direction('right'));
-        if (this.debug["flight"] == false) right.y = 0;
+        if (DEBUG["flight"] == false) right.y = 0;
         right.normalize();
         right.multiplyScalar(this.velocity.x * delta);
         
@@ -240,14 +255,41 @@ class FirstPersonControls {
     }
 
     interact() {
-        let intersection = new THREE.Vector3();
         for (let i = 0; i < this.currentCrates.length; i++) {
+            let intersection = new THREE.Vector3();
             this.interactDetector.ray.intersectBox(this.currentCrates[i]["box"], intersection);
-            if (this.interactDetector.ray.origin.distanceTo(intersection) <= INTERACT_DISTANCE) {
+            if (this.interactDetector.ray.origin.distanceTo(intersection) <= INTERACT_DISTANCE && !this.currentCrates[i]["looted"]) {
                 this.currentCrates[i]["looted"] = true;
-                console.log(intersection);
+                this.loot(this.currentCrates[i]["type"]);
                 break;
             }
+        }
+    }
+
+    loot(type) {
+        if (type == "Crate_N") {
+            const chance = Math.floor(Math.random() * NORMAL_LOOT.length);
+            const item = NORMAL_LOOT[chance];
+            const description = LOOT_DESCRIPTIONS[item];
+
+            // set texts to corresponding item
+            document.getElementById("item-popup").style.display = 'block';
+            let texts = document.getElementById("item-popup").children;
+            texts[0].innerHTML = item;
+            texts[1].innerHTML = description;
+
+            // remove texts after a while
+            setTimeout(function() {
+                document.getElementById("item-popup").style.display = 'none';
+            }, 2000);
+
+            // add item to stack if stack
+            for (const [key, value] of Object.entries(this.stackingItems)) {
+                if (item == key) this.stackingItems[key] += 1;
+            }
+
+            // console.log(item);
+            console.log(this.stackingItems);
         }
     }
 }

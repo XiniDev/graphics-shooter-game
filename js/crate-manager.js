@@ -1,7 +1,16 @@
 import * as THREE from './three/three.modules.js';
+import { DEBUG } from './utils.js';
 
 const CRATE_MODELS = {
     "Crate_N" : new URL('../assets/models/crates/Normal_Crate.glb', import.meta.url),
+    "Crate_A" : new URL('../assets/models/crates/Active_Crate.glb', import.meta.url),
+    "Crate_R" : new URL('../assets/models/crates/Rare_Crate.glb', import.meta.url),
+};
+
+const SPAWN_RATES = {
+    "Crate_N" : 0.7,
+    "Crate_A" : 0.2,
+    "Crate_R" : 0.1,
 };
 
 const MAX_CRATES = 5;
@@ -15,10 +24,6 @@ class CrateManager {
         for (const [key, value] of Object.entries(CRATE_MODELS)) {
             this.loadCrates(key, loader);
         }
-
-        this.debug = {
-            "box" : true,
-        }
     }
 
     update(delta, floor, scene) {
@@ -27,17 +32,28 @@ class CrateManager {
     }
 
     spawnCrate(floor, scene) {
-        if (this.crateModels["Crate_N"] !== undefined) {
-            // loot crate spawn rate
-            if (Math.random() > 0.999) {
+        if (Object.values(this.crateModels).length == 3) {
+            // the spawn rate of any loot crate at all (if they even spawn at all, not type of loot crate spawn chance)
+            if (Math.random() > 0.1) {
+                // type of loot crate spawn chance
+                let chance = Math.random();
+                let type;
+
+                // chance check
+                if (chance < SPAWN_RATES["Crate_R"]) type = "Crate_R";
+                else if (chance < SPAWN_RATES["Crate_R"] + SPAWN_RATES["Crate_A"]) type = "Crate_A";
+                else type = "Crate_N";
+                
+                // spawn position based on indices, make sure that they don't spawn at the exact edge of the map
                 let ind;
                 do {
                     ind = Math.floor(Math.random() * floor.indices.length);
                 } while (ind == floor.minIndex || ind == floor.maxIndex);
                 let pos = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, floor.indices[ind]);
 
+                // limit the amount of crates spawned at a time
                 if (this.currentCrates.length < MAX_CRATES) {
-                    const data = this.crateModels["Crate_N"].clone();
+                    const data = this.crateModels[type].clone();
                     data.position.copy(pos);
 
                     // bounding box
@@ -45,13 +61,14 @@ class CrateManager {
                     
                     // debug
                     let boxh;
-                    if (this.debug["box"]) {
+                    if (DEBUG["box"]) {
                         boxh = new THREE.Box3Helper(box);
                         scene.add(boxh);
                     }
 
                     // store values
                     this.currentCrates.push({
+                        "type" : type,
                         "data" : data,
                         "box" : box,
                         "boxh" : boxh,
@@ -89,7 +106,10 @@ class CrateManager {
             const glowMesh = model.children.find((child) => child.name === "Glow");
 
             // glow mesh light
-            const light = new THREE.PointLight(0x63E2FF, 4, 10);
+            let light;
+            if (type == "Crate_N") light = new THREE.PointLight(0x63E2FF, 4, 10);
+            else if (type == "Crate_A") light = new THREE.PointLight(0xFFCE7A, 4, 10);
+            else light = new THREE.PointLight(0xD65DFF, 4, 10);
             glowMesh.add(light);
 
             const mesh = new THREE.Group();

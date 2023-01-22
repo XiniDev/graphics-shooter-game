@@ -4,10 +4,12 @@ import { FirstPersonControls } from './controls.js';
 import { Floor } from './floor.js';
 import { WeaponControls } from './weapon-controls.js';
 import { CrateManager } from './crate-manager.js';
+import { TotemManager } from './totem-manager.js';
 
 let camera, scene, renderer, loader;
 let floor;
-let fps, wc, cm;
+let fps, wc;
+let tm, cm;
 
 let prevTime = performance.now();
 
@@ -83,6 +85,7 @@ function init() {
     } );
 
     cm = new CrateManager(loader);
+    tm = new TotemManager(loader);
 
     // fps.addCrateManager(cm);
 
@@ -101,6 +104,7 @@ function animate() {
 
     fps.update(delta, wc.isAiming, cm.currentCrates);
     wc.update(delta, camera, fps.velocity);
+    tm.update(delta, floor, scene);
     cm.update(delta, floor, scene);
 
     // var arrow = new THREE.ArrowHelper( fps.interactDetector.ray.direction, fps.interactDetector.ray.origin, 8, 0xff0000 );

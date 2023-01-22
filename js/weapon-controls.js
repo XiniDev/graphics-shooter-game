@@ -20,7 +20,7 @@ class WeaponControls {
     constructor(camera, loader, scene) {
         // model stuff
         this.heldIndex = 0;
-        this.heldWeapons = ["Edge_14"];
+        this.heldWeapons = ["Edge_14", "Edge_14"];
         this.weaponModels = {};
 
         for (const [key, value] of Object.entries(GUN_MODELS)) {
@@ -105,7 +105,9 @@ class WeaponControls {
 
     shootAnimation(delta) {
         if (this.isShooting) {
-            let gun = this.weaponModels[this.heldWeapons[this.heldIndex]]
+            let gun = this.weaponModels[this.heldWeapons[this.heldIndex]];
+
+            // copy original position and rotation
             this.backupGunPosition.copy(gun.position);
             this.backupGunRotation.copy(gun.rotation);
             if (this.shootFrames < this.maxShootFrames) {
@@ -114,6 +116,8 @@ class WeaponControls {
             } else {
                 this.shootFrames = 0;
                 this.isShooting = false;
+
+                // back to original position and rotation
                 gun.position.copy(this.backupGunPosition);
                 gun.rotation.copy(this.backupGunRotation);
             }
