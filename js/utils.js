@@ -11,6 +11,7 @@ export function addScore(num) {
 }
 
 export const WORLD_SIZE = 2500;
+export const WORLD_SIZE_2 = 3000;
 
 export const DEBUG = {
     "flight" : false,
@@ -55,11 +56,19 @@ export function v3Direction(direction) {
 }
 
 export function worldBounds(object) {
-    if (object.position.x > WORLD_SIZE / 2) object.position.x = WORLD_SIZE / 2;
-    if (object.position.x < - WORLD_SIZE / 2) object.position.x = - WORLD_SIZE / 2;
+    if (worldLevel == 1) {
+        if (object.position.x > WORLD_SIZE / 2) object.position.x = WORLD_SIZE / 2;
+        if (object.position.x < - WORLD_SIZE / 2) object.position.x = - WORLD_SIZE / 2;
 
-    if (object.position.z > WORLD_SIZE / 2) object.position.z = WORLD_SIZE / 2;
-    if (object.position.z < - WORLD_SIZE / 2) object.position.z = - WORLD_SIZE / 2;
+        if (object.position.z > WORLD_SIZE / 2) object.position.z = WORLD_SIZE / 2;
+        if (object.position.z < - WORLD_SIZE / 2) object.position.z = - WORLD_SIZE / 2;
+    } else {
+        if (object.position.x > WORLD_SIZE_2 / 2) object.position.x = WORLD_SIZE_2 / 2;
+        if (object.position.x < - WORLD_SIZE_2 / 2) object.position.x = - WORLD_SIZE_2 / 2;
+
+        if (object.position.z > WORLD_SIZE_2 / 2) object.position.z = WORLD_SIZE_2 / 2;
+        if (object.position.z < - WORLD_SIZE_2 / 2) object.position.z = - WORLD_SIZE_2 / 2;
+    }
 }
 
 export function changeTexture(mesh, texture) {

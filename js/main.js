@@ -1,6 +1,6 @@
 import * as THREE from './three/three.modules.js';
 import { GLTFLoader } from './three/addons/GLTFLoader.js';
-import { WORLD_SIZE, setWorldLevel, worldLevel, score, addScore } from './utils.js';
+import { WORLD_SIZE, WORLD_SIZE_2, setWorldLevel, worldLevel, score, addScore } from './utils.js';
 import { FirstPersonControls } from './controls.js';
 import { Floor } from './floor.js';
 import { WeaponControls } from './weapon-controls.js';
@@ -67,7 +67,7 @@ function init(level) {
     scene.add( fps.controls.getObject() );
 
     if (level == 1) floor = new Floor(WORLD_SIZE, level);
-    else floor = new Floor(WORLD_SIZE + 500, level);
+    else floor = new Floor(WORLD_SIZE_2, level);
     scene.add( floor.mesh );
 
     fps.setFloorValues(floor);

@@ -76,10 +76,10 @@ class FirstPersonControls {
 
     initItems() {
         for (let i = 0; i < NORMAL_LOOT.length; i++) {
-            this.stackingItems[NORMAL_LOOT[i]] = 0;
+            this.stackingItems[NORMAL_LOOT[i]] = 5;
         }
         for (let i = 0; i < RARE_LOOT.length; i++) {
-            this.stackingItems[RARE_LOOT[i]] = 0;
+            this.stackingItems[RARE_LOOT[i]] = 5;
         }
     }
 
@@ -183,7 +183,7 @@ class FirstPersonControls {
         this.additional["damage"] = this.stackingItems["AP-Rounds"] * 0.2;
 
         // Scrap Gun Parts + fire rate
-        this.additional["fireRate"] = Math.pow(1.1, this.stackingItems["Scrap Gun Parts"]);
+        this.additional["fireRate"] = Math.pow(0.9, this.stackingItems["Scrap Gun Parts"]);
         
         // Electric Stabilizer - gun spread
         this.additional["gunSpread"] = Math.pow(0.9, this.stackingItems["Electric Stabilizer"]);
