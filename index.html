@@ -4,49 +4,135 @@
         <meta charset="utf-8">
         <title>My first three.js app</title>
         <style>
-            body { margin: 0; }
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: black;
+                font-family: "Lucida Console";
+            }
             #blocker {
 				position: absolute;
 				width: 100%;
 				height: 100%;
 				background-color: rgba(0,0,0,0.5);
 			}
+            #buttons {
+                margin-top: 5%;
+                margin-left: 20px;
+            }
+            #level1 {
+                width: 200px;
+                height: 40px;
+            }
+            #level2 {
+                width: 200px;
+                height: 40px;
+            }
             #instructions {
-				width: 100%;
-				height: 100%;
 
 				display: flex;
 				flex-direction: column;
 				justify-content: center;
-				align-items: center;
+				align-items: left;
 
-				text-align: center;
-				font-size: 14px;
+                margin-left: 20px;
+
+				text-align: left;
+				font-size: 18px;
 				cursor: pointer;
+
+                color: white;
 			}
+            #clicktoplay {
+                display: none;
+            }
+            #bar-container {
+                position: absolute;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            #bar {
+                width: 800px;
+                height: 20px;
+                margin-top: 2%;
+                
+                display: flex;
+                align-items: center;
+
+                box-sizing: border-box;
+                border-radius: 5px;
+                
+                background: #999999;
+            }
+            #hp {
+                background: #3DED97;
+                width: 99%;
+                height: 16px;
+                margin-left: 0.5%;
+                position: relative;
+                
+                transition: width .3s linear;
+            }
             #item-popup {
                 position: absolute;
                 width: 100%;
-                margin-top: 10%;
+                margin-top: 8%;
+
+                display: none;
                 
                 text-align: center;
-                display: none;
+				color: #FFFFFF;
+            }
+            #scoreText {
+                position: absolute;
+                width: 100%;
+                margin-top: 2%;
+                
+                text-align: center;
+				color: #FFFFFF;
             }
         </style>
 	</head>
 	<body>
         <div id="blocker">
+            <div id="buttons">
+                <button id="level1">Level 1</button>
+                <button id="level2">Level 2</button>
+            </div>
             <div id="instructions">
-                <p style="font-size:36px">
+                <h1>Totem Hunter</h1>
+                <p id = "clicktoplay" style="font-size:36px">
                     Click to play
                 </p>
-                <p>
-                    Move: WASD<br/>
-                    Jump: SPACE<br/>
-                    Look: MOUSE
+                <p id="instructions_p">Instructions:<br/>
+                    WASD to move<br/>
+                    Shift to sprint<br/>
+                    Space to jump<br/>
+                    Left click to shoot<br/>
+                    Right click to aim down sight<br/>
+                    1 for weapon 1, and 2 for weapon 2<br/>
+                    E to interact<br/><br/>
+                    
+                    Goal:<br/>
+                    Light up all the totems to clear the haunted area, totems unlit will spawn enemies, so you must fight them!<br/>
+                    Once all totems are lit up, you will win.<br/>
+                    Enemies include: ghosts (can fly and will attempt to spin around you), rockys (will roll at you full speed)<br/><br/>
+                    
+                    Things to watch out for when playing the game:<br/>
+                    Shooting while moving and especially while sprinting or jumping is less accurate, aim down sight for more accurate shots (movement will be slower!)<br/>
+                    The rifle (XenTech 99) is much faster, but is less accurate and has less damage.<br/>
+                    The pistol (Edge 14) is much slower, but is more accurate and has more damage.<br/>
+                    Diffferent items give different bonuses, it will say when you pick up the items from the loot crates (blue loot crates have common items, purple are rare, and yellow give double rewards!)
                 </p>
             </div>
         </div>
+        <div id="bar-container">
+            <div id="bar">
+                <div id="hp">HP</div>
+            </div>
+        </div>
+        <div id="scoreText">Score: <span id="score">0</span></div>
         <div id="item-popup">
             <h1>TITLE</h1>
             <p>Description</p>

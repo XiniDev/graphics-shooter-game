@@ -1,11 +1,13 @@
 import * as THREE from './three/three.modules.js';
-import { DEBUG } from './utils.js';
+import { GhostSpawner, RockySpawner } from './enemy-spawner.js';
+import { DEBUG, worldLevel } from './utils.js';
 
 const TOTEM_MODEL = new URL('../assets/models/totem/Totem.glb', import.meta.url);
-const UNLIT_TEXTURE = new THREE.TextureLoader().load('../assets/models/totem/textures/Totem_Texture_Unlit.png');
-const LIT_TEXTURE = new THREE.TextureLoader().load('../assets/models/totem/textures/Totem_Texture_Lit.png');
 
-const MAX_TOTEMS = 5;
+const MAX_TOTEMS = {
+    1: 7,
+    2: 8,
+};
 
 class TotemManager {
     constructor(loader) {
@@ -15,12 +17,17 @@ class TotemManager {
         this.loadTotem(loader);
     }
 
-    update(delta, floor, scene) {
-        this.spawnTotem(floor, scene)
+    update(delta, loader, floor, scene, player, bullets) {
+        if (typeof this.totemModel !== "undefined") {
+            this.spawnTotem(loader, floor, scene);
+            this.spawnEnemies(floor, scene);
+            this.updateEnemies(delta, player, floor, bullets, scene);
+        }
     }
 
-    spawnTotem(floor, scene) {
-        if (typeof this.totemModel !== "undefined") {
+    spawnTotem(loader, floor, scene) {
+        // total totems spawned in one level dependant on constant
+        if (this.currentTotems.length < MAX_TOTEMS[worldLevel]) {
             // spawn position based on indices, make sure that they don't spawn at the exact edge of the map
             let ind;
             do {
@@ -28,40 +35,52 @@ class TotemManager {
             } while (ind == floor.minIndex || ind == floor.maxIndex);
             let pos = new THREE.Vector3().fromBufferAttribute(floor.geometry.attributes.position, floor.indices[ind]);
 
-            // total totems spawned in one level dependant on constant
-            if (this.currentTotems.length < MAX_TOTEMS) {
-                const data = this.totemModel.clone();
-                data.position.copy(pos);
+            // spawning
+            const totem = this.totemModel.clone();
+            totem.position.copy(pos);
 
-                // bounding box
-                const box = new THREE.Box3().setFromObject(data);
-                    
-                // debug
-                let boxh;
-                if (DEBUG["box"]) {
-                    boxh = new THREE.Box3Helper(box);
-                    scene.add(boxh);
-                }
+            // bounding box
+            const box = new THREE.Box3().setFromObject(totem);
+                
+            // debug
+            let boxh;
+            if (DEBUG["box"]) {
+                boxh = new THREE.Box3Helper(box);
+                scene.add(boxh);
+            }
 
-                // store values
-                this.currentTotems.push({
-                    "data" : data,
-                    "box" : box,
-                    "boxh" : boxh,
-                    "lit" : false,
-                });
-                scene.add(data);
+            // type of spawner
+            let spawner, chance;
+            if (worldLevel == 1) chance = 0.6;
+            else chance = 0.4;
+            if (Math.random() < chance) spawner = new GhostSpawner(loader);
+            else spawner = new RockySpawner(loader);
+
+            // store values
+            this.currentTotems.push({
+                "data" : totem,
+                "box" : box,
+                "boxh" : boxh,
+                "lit" : false,
+                "spawner" : spawner,
+            });
+            scene.add(totem);
+        }
+    }
+
+    spawnEnemies(floor, scene) {
+        for (let i = 0; i < this.currentTotems.length; i++) {
+            if (!this.currentTotems[i]["lit"]) {
+                this.currentTotems[i]["spawner"].spawnEnemies(this.currentTotems[i]["data"].position, floor, scene);
             }
         }
     }
 
-    // changeTexture() {
-    //     let totemMesh;
-    //     totemMesh.material.map = LIT_TEXTURE;
-    //     totemMesh.material.map.encoding = THREE.sRGBEncoding;
-    //     totemMesh.material.map.flipY = false;
-    //     totemMesh.material.needsUpdate = true;
-    // }
+    updateEnemies(delta, player, floor, bullets, scene) {
+        for (let i = 0; i < this.currentTotems.length; i++) {
+            this.currentTotems[i]["spawner"].update(delta, this.currentTotems[i]["data"].position, player, floor, bullets, scene);
+        }
+    }
 
     loadTotem(loader) {
         // load totem asset
@@ -75,6 +94,7 @@ class TotemManager {
             orbMesh.add(light);
 
             const mesh = new THREE.Group();
+            mesh.name = "totem";
             mesh.add(totemMesh);
             mesh.add(orbMesh);
 
